@@ -1,0 +1,510 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "kernelspec": {
+      "display_name": "Python 3",
+      "language": "python",
+      "name": "python3"
+    },
+    "language_info": {
+      "codemirror_mode": {
+        "name": "ipython",
+        "version": 3
+      },
+      "file_extension": ".py",
+      "mimetype": "text/x-python",
+      "name": "python",
+      "nbconvert_exporter": "python",
+      "pygments_lexer": "ipython3",
+      "version": "3.7.6"
+    },
+    "colab": {
+      "name": "trail 1.ipynb",
+      "provenance": [],
+      "include_colab_link": true
+    },
+    "accelerator": "GPU"
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/ZeBread/coochie-tester-1000/blob/main/trail_1.ipynb\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "xSRV632US4wB"
+      },
+      "source": [
+        "#PACKAGES\n",
+        "import tensorflow as tf\n",
+        "import matplotlib.pyplot as plt\n",
+        "import cv2\n",
+        "import os\n",
+        "import numpy as np\n",
+        "from tensorflow.keras.preprocessing.image import ImageDataGenerator\n",
+        "from tensorflow.keras.preprocessing import image\n",
+        "from tensorflow.keras.optimizers import RMSprop\n",
+        "from tensorflow import keras\n",
+        "from tensorflow.keras import layers\n",
+        "from tensorflow.keras.models import Sequential"
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "wNdUMIlETLxv",
+        "outputId": "9686eff4-8245-4aca-f676-92a6f64cd2c9"
+      },
+      "source": [
+        "#DRIVE LINKING\r\n",
+        "from google.colab import drive\r\n",
+        "drive.mount('/content/drive/')"
+      ],
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Drive already mounted at /content/drive/; to attempt to forcibly remount, call drive.mount(\"/content/drive/\", force_remount=True).\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "MWrMX6acWRS8"
+      },
+      "source": [
+        "#DATA DIRECTORY LINKING\r\n",
+        "DATADIR = \"/content/drive/MyDrive/train_200px\"\r\n",
+        "CATEGORIES = [\"FH\",\"MC\",\"MH\",\"NL\",\"OH\",\"VC\"]"
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "QsXvlrgrW9S_"
+      },
+      "source": [
+        "CREATING DATASET"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "8g6QMZ-dcFVK"
+      },
+      "source": [
+        "batch_size = 5\r\n",
+        "img_height = 200\r\n",
+        "img_width = 200"
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "7eOjZnkwcQey",
+        "outputId": "0fdc7e84-ec6c-409d-dd86-97bab6075e2c"
+      },
+      "source": [
+        "train_ds = tf.keras.preprocessing.image_dataset_from_directory(\r\n",
+        "  DATADIR,\r\n",
+        "  validation_split=0.2,\r\n",
+        "  subset=\"training\",\r\n",
+        "  seed=123,\r\n",
+        "  image_size=(img_height, img_width),\r\n",
+        "  batch_size=batch_size)"
+      ],
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Found 592 files belonging to 6 classes.\n",
+            "Using 474 files for training.\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "COPyKeVhcigR",
+        "outputId": "fea32b7c-a51d-46d9-b7b8-ee1c24543532"
+      },
+      "source": [
+        "val_ds = tf.keras.preprocessing.image_dataset_from_directory(\r\n",
+        "  DATADIR,\r\n",
+        "  validation_split=0.2,\r\n",
+        "  subset=\"validation\",\r\n",
+        "  seed=123,\r\n",
+        "  image_size=(img_height, img_width),\r\n",
+        "  batch_size=batch_size)"
+      ],
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Found 592 files belonging to 6 classes.\n",
+            "Using 118 files for validation.\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "s7I3sbS_cp0Z",
+        "outputId": "99a3c97b-0f46-4d38-f71e-a673d627de5a"
+      },
+      "source": [
+        "class_names = train_ds.class_names\r\n",
+        "print(class_names)"
+      ],
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "['FH_200px', 'MC_200px', 'MH_200px', 'NL_200px', 'OH_200px', 'VC_200px']\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "pBAhhaBBc1ap"
+      },
+      "source": [
+        "VISUALISE DATA"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "d-UprlE1c7XO",
+        "outputId": "71441623-8c57-47bc-b7ea-79cf4bdcdea6"
+      },
+      "source": [
+        "for image_batch, labels_batch in train_ds:\r\n",
+        "  print(image_batch.shape)\r\n",
+        "  print(labels_batch.shape)\r\n",
+        "  break"
+      ],
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "(5, 200, 200, 3)\n",
+            "(5,)\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "x694E7w2dRxt"
+      },
+      "source": [
+        "Configure the dataset for performance"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "btNHtZ-UdVGB"
+      },
+      "source": [
+        "AUTOTUNE = tf.data.AUTOTUNE\r\n",
+        "\r\n",
+        "train_ds = train_ds.cache().shuffle(50).prefetch(buffer_size=AUTOTUNE)\r\n",
+        "val_ds = val_ds.cache().prefetch(buffer_size=AUTOTUNE)"
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "U-uftaMgddzZ"
+      },
+      "source": [
+        "Standardize the data"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "Op6EsVgyd2Mq"
+      },
+      "source": [
+        "CREATE MODEL"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "PQnu8QsFS4wJ"
+      },
+      "source": [
+        "num_classes = 6\n",
+        "\n",
+        "model = Sequential([\n",
+        "  layers.experimental.preprocessing.Rescaling(1./255, input_shape=(img_height, img_width, 3)),\n",
+        "  layers.Conv2D(16, 3, padding='same', activation='relu'),\n",
+        "  layers.MaxPooling2D(),\n",
+        "  layers.Conv2D(32, 3, padding='same', activation='relu'),\n",
+        "  layers.MaxPooling2D(),\n",
+        "  layers.Conv2D(64, 3, padding='same', activation='relu'),\n",
+        "  layers.MaxPooling2D(),\n",
+        "  layers.Flatten(),\n",
+        "  layers.Dense(128, activation='relu'),\n",
+        "  layers.Dense(num_classes)\n",
+        "])"
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "scrolled": true,
+        "id": "T5PFU_NBS4wJ"
+      },
+      "source": [
+        "model.compile(optimizer='adam',\n",
+        "              loss='sparse_categorical_crossentropy',\n",
+        "              metrics=['accuracy'])"
+      ],
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "6PRzOelOS4wK",
+        "outputId": "44ba1899-d4b6-44e8-e601-71bafa5b0e63"
+      },
+      "source": [
+        "model.summary()"
+      ],
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Model: \"sequential_1\"\n",
+            "_________________________________________________________________\n",
+            "Layer (type)                 Output Shape              Param #   \n",
+            "=================================================================\n",
+            "rescaling_1 (Rescaling)      (None, 200, 200, 3)       0         \n",
+            "_________________________________________________________________\n",
+            "conv2d_3 (Conv2D)            (None, 200, 200, 16)      448       \n",
+            "_________________________________________________________________\n",
+            "max_pooling2d_3 (MaxPooling2 (None, 100, 100, 16)      0         \n",
+            "_________________________________________________________________\n",
+            "conv2d_4 (Conv2D)            (None, 100, 100, 32)      4640      \n",
+            "_________________________________________________________________\n",
+            "max_pooling2d_4 (MaxPooling2 (None, 50, 50, 32)        0         \n",
+            "_________________________________________________________________\n",
+            "conv2d_5 (Conv2D)            (None, 50, 50, 64)        18496     \n",
+            "_________________________________________________________________\n",
+            "max_pooling2d_5 (MaxPooling2 (None, 25, 25, 64)        0         \n",
+            "_________________________________________________________________\n",
+            "flatten_1 (Flatten)          (None, 40000)             0         \n",
+            "_________________________________________________________________\n",
+            "dense_2 (Dense)              (None, 128)               5120128   \n",
+            "_________________________________________________________________\n",
+            "dense_3 (Dense)              (None, 6)                 774       \n",
+            "=================================================================\n",
+            "Total params: 5,144,486\n",
+            "Trainable params: 5,144,486\n",
+            "Non-trainable params: 0\n",
+            "_________________________________________________________________\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "qrDv7H-kS4wK",
+        "outputId": "aebd107b-9364-409b-dfca-a4d4d06ea001"
+      },
+      "source": [
+        "epochs = 50\n",
+        "history = model.fit(\n",
+        "  train_ds,\n",
+        "  validation_data=val_ds,\n",
+        "  epochs = epochs\n",
+        ")"
+      ],
+      "execution_count": null,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "text": [
+            "Epoch 1/50\n",
+            "95/95 [==============================] - 2s 13ms/step - loss: 10.6756 - accuracy: 0.1869 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 2/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 10.8499 - accuracy: 0.1948 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 3/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 10.9881 - accuracy: 0.1444 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 4/50\n",
+            "95/95 [==============================] - 1s 7ms/step - loss: 11.0205 - accuracy: 0.1586 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 5/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 10.9744 - accuracy: 0.1595 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 6/50\n",
+            "95/95 [==============================] - 1s 8ms/step - loss: 11.6631 - accuracy: 0.1283 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 7/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 10.8633 - accuracy: 0.1572 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 8/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 10.9536 - accuracy: 0.1574 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 9/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 10.7206 - accuracy: 0.1652 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 10/50\n",
+            "95/95 [==============================] - 1s 7ms/step - loss: 11.2935 - accuracy: 0.1745 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 11/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 10.9037 - accuracy: 0.2085 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 12/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 10.6406 - accuracy: 0.1621 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 13/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 11.0238 - accuracy: 0.1728 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 14/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 11.5115 - accuracy: 0.1467 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 15/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 11.3469 - accuracy: 0.1597 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 16/50\n",
+            "95/95 [==============================] - 1s 7ms/step - loss: 11.8306 - accuracy: 0.1539 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 17/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 10.8691 - accuracy: 0.1925 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 18/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 11.1548 - accuracy: 0.1326 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 19/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 10.4885 - accuracy: 0.1694 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 20/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 11.0646 - accuracy: 0.1428 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 21/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 10.8471 - accuracy: 0.1930 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 22/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 11.1346 - accuracy: 0.1707 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 23/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 11.4138 - accuracy: 0.1616 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 24/50\n",
+            "95/95 [==============================] - 1s 7ms/step - loss: 11.0977 - accuracy: 0.1692 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 25/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 10.7227 - accuracy: 0.1688 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 26/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 11.0241 - accuracy: 0.1814 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 27/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 11.6809 - accuracy: 0.1656 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 28/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 10.6776 - accuracy: 0.2042 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 29/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 11.3655 - accuracy: 0.1551 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 30/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 11.4181 - accuracy: 0.1455 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 31/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 10.9179 - accuracy: 0.1954 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 32/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 10.7309 - accuracy: 0.1898 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 33/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 11.3380 - accuracy: 0.1686 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 34/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 11.1638 - accuracy: 0.1805 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 35/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 10.5368 - accuracy: 0.2235 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 36/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 11.9167 - accuracy: 0.1518 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 37/50\n",
+            "95/95 [==============================] - 1s 7ms/step - loss: 11.2243 - accuracy: 0.1732 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 38/50\n",
+            "95/95 [==============================] - 1s 7ms/step - loss: 10.7301 - accuracy: 0.1659 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 39/50\n",
+            "95/95 [==============================] - 1s 7ms/step - loss: 11.8934 - accuracy: 0.1378 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 40/50\n",
+            "95/95 [==============================] - 1s 7ms/step - loss: 11.2880 - accuracy: 0.1862 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 41/50\n",
+            "95/95 [==============================] - 1s 7ms/step - loss: 11.0888 - accuracy: 0.1313 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 42/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 11.0982 - accuracy: 0.1464 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 43/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 10.9900 - accuracy: 0.1803 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 44/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 10.7298 - accuracy: 0.1791 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 45/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 11.1435 - accuracy: 0.1565 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 46/50\n",
+            "95/95 [==============================] - 1s 7ms/step - loss: 11.0387 - accuracy: 0.1714 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 47/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 10.9601 - accuracy: 0.1942 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 48/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 11.5960 - accuracy: 0.1477 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 49/50\n",
+            "95/95 [==============================] - 1s 7ms/step - loss: 11.1094 - accuracy: 0.1724 - val_loss: 11.8939 - val_accuracy: 0.1695\n",
+            "Epoch 50/50\n",
+            "95/95 [==============================] - 1s 6ms/step - loss: 10.6961 - accuracy: 0.1745 - val_loss: 11.8939 - val_accuracy: 0.1695\n"
+          ],
+          "name": "stdout"
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "YxflccgrS4wK"
+      },
+      "source": [
+        ""
+      ],
+      "execution_count": null,
+      "outputs": []
+    }
+  ]
+}
