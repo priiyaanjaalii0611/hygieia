@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#008577</color>
+    <color name="colorPrimaryDark">#00574B</color>
+    <color name="colorAccent">#D81B60</color>
+    //login screen
+    <color name="colorMainBackground">#6F1D70</color>
+    <color name="colorHeading">#D01CE0</color>
+    <color name="colorTitle">#000000</color>
+    <color name="colorEditTextLetters">#000000</color>
+    <color name="colorEditTextHint">#D5CBBE</color>
+    <color name="colorButtonText">#068C0C</color>
+
+    <color name="colorText">#D01CE0</color>
+</resources>
